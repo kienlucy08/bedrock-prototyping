@@ -1,0 +1,4 @@
+.env
+agent_config.json
+analysis_result_*
+*.json
