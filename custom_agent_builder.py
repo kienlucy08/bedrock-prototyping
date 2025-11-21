@@ -168,7 +168,7 @@ Be precise, analytical, and focus on data-driven answers.
         'name': 'DataAnalyst-Agent',
         'instructions': instructions,
         'model': 'anthropic.claude-sonnet-4-5-20250929-v1:0',
-        'role_arn': 'arn:aws:iam::615898656387:role/BedrockAgentRole',
+        'role_arn': 'arn:aws:iam::615898656387:role/service-role/AmazonBedrockExecutionRoleForAgents_D03GCFILVK',
         'description': 'Specialized agent for data analysis on TIA inspections'
     }
     
@@ -313,7 +313,7 @@ def main():
 
     test = CustomAgentBuilder()
 
-    test._prepare_agent("NWH21AVR2Q")
+    test._prepare_agent("FYNTRHVA3D")
     time.sleep(2)
     
     # # Choose what to create

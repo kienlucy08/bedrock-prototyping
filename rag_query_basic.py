@@ -17,7 +17,7 @@ print("="*70)
 builder = CustomAgentBuilder()
 
 # Get agent information
-agent_id = "FERZBAMEKK"
+agent_id = "FYNTRHVA3D"
 agent_info = builder.get_agent(agent_id)
 
 print(f"\nAgent Found!")
@@ -53,6 +53,9 @@ agent = {
     'alias_id': alias_id,
     'agent_arn': agent_info['agentArn']
 }
+print(f"RAG Agent Created!")
+print(f"Agent ID: {agent['agent_id']}")
+print(f"Alias ID: {agent['alias_id']}")
 
 print("\nSaving agent info...")
 with open('agent_config.json', 'w') as f:
@@ -154,7 +157,7 @@ for i, prompt in enumerate(test_prompts, 1):
     
     try:
         print(f"Sending request to agent...")
-        result = builder.invoke_agent(
+        result = agent.invoke_agent(
             agent_id=agent['agent_id'],
             alias_id=agent['alias_id'],
             prompt=prompt
