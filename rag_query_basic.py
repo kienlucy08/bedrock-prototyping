@@ -1,4 +1,3 @@
-
 import json
 from botocore.exceptions import ClientError
 import logging
@@ -17,7 +16,7 @@ print("="*70)
 builder = CustomAgentBuilder()
 
 # Get agent information
-agent_id = "FYNTRHVA3D"
+agent_id = "IO0QWGMS3A"
 agent_info = builder.get_agent(agent_id)
 
 print(f"\nAgent Found!")
@@ -63,38 +62,36 @@ with open('agent_config.json', 'w') as f:
 print("Agent info saved to: agent_config.json")
 
 # ============================================================
-# NOW load the ACTUAL inspection data
+# NOW load the parsed markdown data
 # ============================================================
-print("\nLoading tower inspection data...")
-inspection_file = 'CTI_10105_BostonTurnpikeBolton_CompoundPayload.json'
+print("\nLoading parsed inspection data...")
+markdown_file = 'my_custom_report.md'
 
 try:
-    with open(inspection_file, 'r') as f:
-        inspection_data = json.load(f)
+    with open(markdown_file, 'r', encoding='utf-8') as f:
+        markdown_content = f.read()
     
-    # Convert to string for the prompt
-    json_string = json.dumps(inspection_data, indent=2)
+    print(f"Loaded markdown data:")
+    print(f"   File: {markdown_file}")
+    print(f"   Size: {len(markdown_content):,} characters")
     
-    print(f"Loaded inspection data:")
-    print(f"   File: {inspection_file}")
-    print(f"   Size: {len(json_string):,} characters")
-    
-    # Show a preview
-    if 'site_name' in inspection_data:
-        print(f"   Site: {inspection_data.get('site_name', 'Unknown')}")
-    if 'sections' in inspection_data:
-        print(f"   Sections: {len(inspection_data.get('sections', []))}")
+    # Show a preview of first few lines
+    preview_lines = markdown_content.split('\n')[:10]
+    print(f"   Preview:")
+    for line in preview_lines:
+        if line.strip():
+            print(f"     {line[:80]}")
     
 except FileNotFoundError:
-    print(f"Error: File '{inspection_file}' not found!")
+    print(f"Error: File '{markdown_file}' not found!")
     print(f"   Current directory files:")
     import os
     for file in os.listdir('.'):
-        if file.endswith('.json'):
+        if file.endswith('.md'):
             print(f"     - {file}")
     exit(1)
-except json.JSONDecodeError as e:
-    print(f"Error: Invalid JSON in file: {e}")
+except Exception as e:
+    print(f"Error reading markdown file: {e}")
     exit(1)
 
 # ============================================================
@@ -102,21 +99,11 @@ except json.JSONDecodeError as e:
 # ============================================================
 MAX_CHARS = 200000  # Bedrock has limits around 200K chars
 
-if len(json_string) > MAX_CHARS:
-    print(f"\nWARNING: JSON is very large ({len(json_string):,} chars)")
-    print(f"   This may exceed Bedrock limits. Consider analyzing sections separately.")
+if len(markdown_content) > MAX_CHARS:
+    print(f"\nWARNING: Markdown is very large ({len(markdown_content):,} chars)")
+    print(f"   This may exceed Bedrock limits.")
     
-    # Option: Analyze just the structure first
-    structure_summary = {
-        'total_size': len(json_string),
-        'top_level_keys': list(inspection_data.keys()),
-        'sections_count': len(inspection_data.get('sections', [])) if 'sections' in inspection_data else 'N/A'
-    }
-    
-    print(f"\nData Structure:")
-    print(json.dumps(structure_summary, indent=2))
-    
-    use_full = input("\nProceed with full JSON anyway? (yes/no): ").strip().lower()
+    use_full = input("\nProceed with full markdown anyway? (yes/no): ").strip().lower()
     if use_full != 'yes':
         print("Exiting...")
         exit(0)
@@ -126,24 +113,24 @@ print("ANALYZING INSPECTION DATA")
 print("="*70)
 
 # ============================================================
-# Test prompts with the ACTUAL inspection data
+# Test prompts with the parsed markdown data
 # ============================================================
 
 test_prompts = [
-    f"""Analyze this tower inspection JSON payload for data integrity issues:
-```json
-{json_string}
-```
+    f"""Analyze this tower inspection data for data integrity issues:
+
+{markdown_content}
 
 Please identify:
 1. Missing or null values in critical fields
 2. Data type inconsistencies (strings where numbers expected, etc.)
 3. Height discrepancies or unrealistic measurements
-4. Incomplete sections
+4. Incomplete sections or records
 5. Any other data quality issues
+6. General counts of records recorded in the survey and important observations
 
 For each issue found, specify:
-- The exact location (section, field path)
+- The exact location (section, record number)
 - What the issue is
 - Why it's a problem
 - Suggested fix""",
@@ -152,12 +139,12 @@ For each issue found, specify:
 # Run the analysis
 for i, prompt in enumerate(test_prompts, 1):
     print(f"\n{'='*70}")
-    print(f"TEST {i}: {'Data Integrity Analysis' if i == 1 else 'Data Summary'}")
+    print(f"TEST {i}: Data Integrity Analysis")
     print(f"{'='*70}")
     
     try:
         print(f"Sending request to agent...")
-        result = agent.invoke_agent(
+        result = builder.invoke_agent(
             agent_id=agent['agent_id'],
             alias_id=agent['alias_id'],
             prompt=prompt
@@ -168,7 +155,7 @@ for i, prompt in enumerate(test_prompts, 1):
         
         # Save response to file
         output_file = f"analysis_result_{i}.txt"
-        with open(output_file, 'w') as f:
+        with open(output_file, 'w', encoding='utf-8') as f:  # Add encoding='utf-8'
             f.write(f"Prompt:\n{test_prompts[i-1][:200]}...\n\n")
             f.write(f"Response:\n{result['response']}")
         print(f"\nResponse saved to: {output_file}")
@@ -190,4 +177,3 @@ print(f"  Agent ID: {agent['agent_id']}")
 print(f"  Alias ID: {agent['alias_id']}")
 print(f"\nResults saved to:")
 print(f"  - analysis_result_1.txt (Data Integrity Issues)")
-print(f"  - analysis_result_2.txt (Data Summary)")

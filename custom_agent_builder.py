@@ -174,11 +174,6 @@ Be precise, analytical, and focus on data-driven answers.
     
     return builder.create_custom_agent(config)
 
-
-# ============================================================
-# EXAMPLE 4: Custom RAG Agent (Your Use Case)
-# ============================================================
-
 # def create_rag_query_agent():
 #     """
 #     Agent specialized in RAG queries combining vector and SQL data
