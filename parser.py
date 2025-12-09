@@ -317,7 +317,7 @@ if __name__ == "__main__":
     if 'error' in result:
         print(f"Error: {result['error']}")
     else:
-        print(f"\n✓ Split complete!")
-        print(f"✓ Customer Site ID: {result['customer_site_id']}")
-        print(f"✓ Survey Type: {result['survey_type']}")
-        print(f"✓ Total files created: {result['total_files']}")
+        print(f"\nSplit complete!")
+        print(f"Customer Site ID: {result['customer_site_id']}")
+        print(f"Survey Type: {result['survey_type']}")
+        print(f"Total files created: {result['total_files']}")
