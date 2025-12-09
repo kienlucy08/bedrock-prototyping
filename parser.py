@@ -1,35 +1,26 @@
 import json
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional
+from pathlib import Path
 
 
-class SurveyParser:
+class SurveyJSONSplitter:
     """
-    Parses survey payload and extracts important feature data without chunking.
-    Focuses on extracting and formatting key information in a clean, readable format.
+    Parses survey payload and splits it into separate JSON files by section.
+    Creates 4+ files: site_details.json, location.json, site_photos.json, 
+    and one file per repeat record type.
     """
     
-    def __init__(self, excluded_fields: Optional[List[str]] = None):
+    def __init__(self, output_dir: str = "output"):
         """
-        Initialize the parser with optional field exclusions.
+        Initialize the splitter.
         
         Args:
-            excluded_fields: List of field names to exclude from output
+            output_dir: Directory to save output files (default: 'output')
         """
-        # Built-in exclusions for noisy/irrelevant fields
-        self.auto_exclude = {
-            'organization_url', 'organization_id', 'confirm_org',
-            'customer', 'customer_other',
-            'flag_survey_bin', 'flag_comment',
-            'member_lookup',
-            'weather_api_key', 'weather_json',
-            'objectid', 'globalid', 'parentglobalid'
-        }
+        self.output_dir = output_dir
         
-        # Add user-provided exclusions
-        if excluded_fields:
-            self.auto_exclude.update(field.lower() for field in excluded_fields)
-    
     def _format_timestamp(self, unix_ms: Any) -> str:
         """Convert Unix millisecond timestamp to readable date"""
         try:
@@ -38,472 +29,295 @@ class SurveyParser:
                 return dt_obj.strftime('%Y-%m-%d %H:%M:%S')
         except (ValueError, TypeError, OSError):
             pass
-        return 'N/A'
+        return None
     
-    def _should_include_field(self, key: str, value: Any) -> bool:
-        """Determine if a field should be included in output"""
-        key_lower = key.lower()
-        
-        # Exclude if in exclusion list
-        if key_lower in self.auto_exclude:
-            return False
-        
-        # Exclude count/index fields
-        if key_lower.endswith(('_count', '_index', '_idx')):
-            return False
-        
-        # Exclude empty values
-        if value is None or value == "":
-            return False
-        
-        return True
+    def _create_output_dir(self) -> str:
+        """Create output directory if it doesn't exist"""
+        Path(self.output_dir).mkdir(parents=True, exist_ok=True)
+        return self.output_dir
     
-    def _format_attributes(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract and format important attributes"""
-        formatted = {}
+    def _clean_attributes(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove null/empty values and unwanted fields from attributes"""
+        cleaned = {}
+        
+        # Fields to exclude
+        exclude_fields = {
+            'objectid', 'globalid', 'parentglobalid',
+            'organization_url', 'organization_id', 'confirm_org',
+            'customer', 'customer_other',
+            'flag_survey_bin', 'flag_comment',
+            'weather_api_key', 'weather_json'
+        }
         
         for key, value in attrs.items():
-            if not self._should_include_field(key, value):
+            # Skip excluded fields
+            if key.lower() in exclude_fields:
                 continue
             
-            # Format timestamp fields
-            if 'datetime' in key.lower() or 'date' in key.lower():
-                formatted[key] = self._format_timestamp(value)
+            # Skip null/empty values
+            if value is None or value == "":
+                continue
+            
+            # Format timestamps
+            if 'datetime' in key.lower() or key.lower() in ['creationdate', 'editdate']:
+                formatted = self._format_timestamp(value)
+                if formatted:
+                    cleaned[key] = formatted
             else:
-                formatted[key] = value
+                cleaned[key] = value
         
-        return formatted
+        return cleaned
     
-    def _extract_site_info(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract core site identification information"""
-        site_info = {
-            'customer_site_id': attrs.get('customer_site_id', 'N/A'),
-            'customer_site_name': attrs.get('customer_site_name', 'N/A'),
-            'customer_label': attrs.get('customer_label', 'N/A'),
-            'survey_type': attrs.get('survey_type', 'N/A'),
-            'structure_type': attrs.get('structure_type', 'N/A'),
-            'site_visit_datetime': self._format_timestamp(attrs.get('site_visit_datetime')),
-        }
+    def _extract_site_details(self, attrs: Dict[str, Any], customer_site_id: str, survey_type: str) -> Dict[str, Any]:
+        """Create site_details.json content"""
+        processing_time = datetime.now().isoformat() + 'Z'
         
-        # Add any other important top-level fields
-        priority_fields = [
-            'username', 'survey_purpose', 'inspection_technician',
-            'email','apex_height', 'structure_steel_height'
-        ]
-        
-        for field in priority_fields:
-            if field in attrs and self._should_include_field(field, attrs[field]):
-                site_info[field] = attrs[field]
-        
-        return site_info
-    
-    def _extract_location(self, geometry: Dict[str, Any]) -> Dict[str, Any]:
-        """Extract location/geometry information"""
-        if not geometry:
-            return {}
+        # Clean all attributes
+        cleaned_attrs = self._clean_attributes(attrs)
         
         return {
-            'latitude': geometry.get('y', 'N/A'),
-            'longitude': geometry.get('x', 'N/A'),
-            'spatial_reference': geometry.get('spatialReference', {}).get('wkid', 'N/A')
+            "metadata": {
+                "section_type": "site_details",
+                "customer_site_id": customer_site_id,
+                "survey_type": survey_type
+            },
+            "data": cleaned_attrs
         }
     
-    def _format_record(self, record: Dict[str, Any], record_num: int) -> Dict[str, Any]:
-        """Format a single repeat record with important attributes"""
-        attrs = record.get('attributes', {})
+    def _extract_location(self, geometry: Dict[str, Any], customer_site_id: str, survey_type: str) -> Dict[str, Any]:
+        """Create location.json content"""
+        processing_time = datetime.now().isoformat() + 'Z'
         
-        # Priority attributes for records (most important first)
-        priority_keys = [
-            'severity', 'tia_severity',
-            'location', 'tia_location',
-            'issue', 'tia_issue', 'tia_label',
-            'identifier', 'tia_identifier_label', 'tia_def_identifier',
-            'notes', 'tia_notes', 'description', 'name',
-            'height', 'width', 'length', 'type', 'route'
-        ]
+        location_data = {}
+        if geometry:
+            location_data = {
+                "latitude": geometry.get('y'),
+                "longitude": geometry.get('x'),
+                "spatial_reference": geometry.get('spatialReference', {}).get('wkid')
+            }
         
-        formatted_record = {'record_number': record_num}
+        return {
+            "metadata": {
+                "section_type": "location",
+                "customer_site_id": customer_site_id,
+                "survey_type": survey_type
+            },
+            "data": location_data
+        }
+    
+    def _extract_site_photos(self, attachments: Dict[str, List[Dict]], customer_site_id: str, survey_type: str) -> Dict[str, Any]:
+        """Create site_photos.json content"""
+        processing_time = datetime.now().isoformat() + 'Z'
         
-        # First pass: get priority attributes
-        for priority_key in priority_keys:
-            for key, value in attrs.items():
-                if (key.lower() == priority_key.lower() and 
-                    self._should_include_field(key, value)):
-                    formatted_record[key] = value
-                    break
+        photos_by_category = []
+        total_photos = 0
         
-        # Second pass: add other important fields (with suffixes we care about)
-        important_suffixes = ['_height', '_width', '_type', '_route', '_length', '_severity']
-        for key, value in attrs.items():
-            if (key not in formatted_record and 
-                self._should_include_field(key, value) and
-                any(key.lower().endswith(suffix) for suffix in important_suffixes)):
-                formatted_record[key] = value
+        if attachments:
+            for category, files in attachments.items():
+                if files:
+                    filenames = [file.get('name', 'Unknown') for file in files]
+                    photos_by_category.append({
+                        "category": category,
+                        "photo_count": len(filenames),
+                        "files": filenames
+                    })
+                    total_photos += len(filenames)
         
-        # Add attachment info
-        if 'attachments' in record and record['attachments']:
-            attachment_count = sum(len(files) for files in record['attachments'].values() if files)
-            if attachment_count > 0:
-                formatted_record['attachment_count'] = attachment_count
-                
-                # Extract attachment details
-                attachments_detail = []
+        return {
+            "metadata": {
+                "section_type": "site_photos",
+                "customer_site_id": customer_site_id,
+                "survey_type": survey_type,
+                "total_photos": total_photos,
+                "total_categories": len(photos_by_category)
+            },
+            "data": {
+                "photos_by_category": photos_by_category
+            }
+        }
+    
+    def _extract_repeat_record_type(self, table_name: str, records: List[Dict], 
+                                    customer_site_id: str, survey_type: str) -> Dict[str, Any]:
+        """Create repeat_records_[type].json content"""
+        processing_time = datetime.now().isoformat() + 'Z'
+        
+        formatted_records = []
+        total_photos = 0
+        
+        for i, record in enumerate(records, 1):
+            attrs = record.get('attributes', {})
+            cleaned_attrs = self._clean_attributes(attrs)
+            
+            # Process attachments
+            attachments_data = {
+                "count": 0,
+                "files": []
+            }
+            
+            if 'attachments' in record and record['attachments']:
                 for category, files in record['attachments'].items():
                     if files:
                         for file in files:
-                            attachments_detail.append({
-                                'category': category,
-                                'name': file.get('name', 'Unknown')
+                            attachments_data["files"].append({
+                                "field_name": category,
+                                "filename": file.get('name', 'Unknown')
                             })
-                formatted_record['attachments'] = attachments_detail
-        
-        return formatted_record
-    
-    def _extract_repeats(self, repeats: Dict[str, List[Dict]]) -> Dict[str, List[Dict]]:
-        """Extract and format repeat records"""
-        if not repeats:
-            return {}
-        
-        formatted_repeats = {}
-        
-        for table_name, records in repeats.items():
-            if not records:
-                continue
+                        attachments_data["count"] += len(files)
+                        total_photos += len(files)
             
-            formatted_records = []
-            for i, record in enumerate(records, 1):
-                formatted_record = self._format_record(record, i)
-                formatted_records.append(formatted_record)
-            
-            formatted_repeats[table_name] = {
-                'record_count': len(formatted_records),
-                'records': formatted_records
+            formatted_record = {
+                "record_number": i
             }
+            
+            # Add attributes if present
+            if cleaned_attrs:
+                formatted_record["attributes"] = cleaned_attrs
+            
+            # Add attachments
+            formatted_record["attachments"] = attachments_data
+            
+            formatted_records.append(formatted_record)
         
-        return formatted_repeats
+        return {
+            "metadata": {
+                "section_type": "repeat_records",
+                "record_type": table_name,
+                "customer_site_id": customer_site_id,
+                "survey_type": survey_type,
+                "total_records": len(formatted_records),
+                "total_photos": total_photos
+            },
+            "data": {
+                "records": formatted_records
+            }
+        }
     
-    def _extract_attachments(self, attachments: Dict[str, List[Dict]]) -> Dict[str, List[str]]:
-        """Extract site-level attachments"""
-        if not attachments:
-            return {}
-        
-        formatted_attachments = {}
-        
-        for category, files in attachments.items():
-            if files:
-                formatted_attachments[category] = [
-                    file.get('name', 'Unknown') for file in files
-                ]
-        
-        return formatted_attachments
-    
-    def parse(self, survey_data: Dict[str, Any]) -> Dict[str, Any]:
+    def split_and_save(self, survey_data: Dict[str, Any], output_dir: str = None) -> Dict[str, Any]:
         """
-        Parse survey data and extract important information.
+        Split survey data into separate JSON files.
         
         Args:
             survey_data: The complete survey JSON payload
+            output_dir: Optional override for output directory
             
         Returns:
-            Dict containing parsed and formatted survey data
+            Dict containing summary of files created
         """
+        if output_dir:
+            self.output_dir = output_dir
+        
+        # Create output directory
+        self._create_output_dir()
+        
         feature = survey_data.get('feature', {})
         
         if not feature:
             return {'error': 'No feature data found in payload'}
         
         attrs = feature.get('attributes', {})
+        customer_site_id = attrs.get('customer_site_id', 'unknown')
+        survey_type = attrs.get('survey_type', 'unknown')
         
-        # Build parsed output
-        parsed_output = {
-            'site_info': self._extract_site_info(attrs),
-            'location': self._extract_location(feature.get('geometry', {})),
+        files_created = []
+        
+        # 1. Create site_details.json
+        site_details = self._extract_site_details(attrs, customer_site_id, survey_type)
+        site_details_file = os.path.join(self.output_dir, 'site_details.json')
+        with open(site_details_file, 'w', encoding='utf-8') as f:
+            json.dump(site_details, f, indent=2, ensure_ascii=False)
+        files_created.append('site_details.json')
+        
+        # 2. Create location.json
+        location = self._extract_location(feature.get('geometry', {}), customer_site_id, survey_type)
+        location_file = os.path.join(self.output_dir, 'location.json')
+        with open(location_file, 'w', encoding='utf-8') as f:
+            json.dump(location, f, indent=2, ensure_ascii=False)
+        files_created.append('location.json')
+        
+        # 3. Create site_photos.json
+        site_photos = self._extract_site_photos(
+            feature.get('attachments', {}), 
+            customer_site_id, 
+            survey_type
+        )
+        site_photos_file = os.path.join(self.output_dir, 'site_photos.json')
+        with open(site_photos_file, 'w', encoding='utf-8') as f:
+            json.dump(site_photos, f, indent=2, ensure_ascii=False)
+        files_created.append('site_photos.json')
+        
+        # 4. Create repeat_records_[type].json for each record type
+        if 'repeats' in feature and feature['repeats']:
+            for table_name, records in feature['repeats'].items():
+                if records:
+                    repeat_data = self._extract_repeat_record_type(
+                        table_name, 
+                        records, 
+                        customer_site_id, 
+                        survey_type
+                    )
+                    
+                    # Clean filename: lowercase, replace spaces/special chars with underscore
+                    safe_table_name = table_name.lower().replace(' ', '_').replace('/', '_')
+                    repeat_file = os.path.join(
+                        self.output_dir, 
+                        f'repeat_records_{safe_table_name}.json'
+                    )
+                    
+                    with open(repeat_file, 'w', encoding='utf-8') as f:
+                        json.dump(repeat_data, f, indent=2, ensure_ascii=False)
+                    
+                    files_created.append(f'repeat_records_{safe_table_name}.json')
+        
+        summary = {
+            'status': 'success',
+            'output_directory': self.output_dir,
+            'files_created': files_created,
+            'total_files': len(files_created),
+            'customer_site_id': customer_site_id,
+            'survey_type': survey_type
         }
         
-        # Add site-level attachments if present
-        if 'attachments' in feature and feature['attachments']:
-            parsed_output['site_attachments'] = self._extract_attachments(feature['attachments'])
+        print(f"\n✓ Successfully split survey data into {len(files_created)} files")
+        print(f"✓ Output directory: {self.output_dir}")
+        print(f"\nFiles created:")
+        for file in files_created:
+            print(f"  - {file}")
         
-        # Add all other important attributes not in site_info
-        other_attrs = {}
-        for key, value in attrs.items():
-            if (self._should_include_field(key, value) and 
-                key not in parsed_output['site_info']):
-                other_attrs[key] = value
-        
-        if other_attrs:
-            parsed_output['additional_attributes'] = other_attrs
-        
-        # Add repeat records if present
-        if 'repeats' in feature and feature['repeats']:
-            parsed_output['repeat_records'] = self._extract_repeats(feature['repeats'])
-        
-        return parsed_output
+        return summary
     
-    def parse_and_save(self, survey_data: Dict[str, Any], output_filename: str = None) -> Dict[str, Any]:
+    def split_from_file(self, filepath: str, output_dir: str = None) -> Dict[str, Any]:
         """
-        Parse survey data and automatically save to markdown file.
+        Split survey data from a JSON file into separate JSON files.
         
         Args:
-            survey_data: The complete survey JSON payload
-            output_filename: Optional custom filename (default: auto-generated from site ID)
+            filepath: Path to the input JSON file
+            output_dir: Optional override for output directory
             
         Returns:
-            Dict containing parsed survey data and output file path
-        """
-        # Parse the data
-        parsed_data = self.parse(survey_data)
-        
-        if 'error' in parsed_data:
-            return parsed_data
-        
-        # Generate filename if not provided
-        if not output_filename:
-            site_id = parsed_data.get('site_info', {}).get('customer_site_id', 'unknown')
-            survey_type = parsed_data.get('site_info', {}).get('survey_type', 'survey')
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            output_filename = f"survey_{site_id}_{survey_type}_{timestamp}.md"
-        
-        # Ensure .md extension
-        if not output_filename.endswith('.md'):
-            output_filename += '.md'
-        
-        # Convert to markdown and save
-        markdown_content = self.to_markdown(parsed_data)
-        
-        try:
-            with open(output_filename, 'w', encoding='utf-8') as f:
-                f.write(markdown_content)
-            
-            parsed_data['output_file'] = output_filename
-            print(f"✓ Parsed survey data saved to: {output_filename}")
-            
-        except IOError as e:
-            parsed_data['error'] = f"Failed to save file: {str(e)}"
-        
-        return parsed_data
-    
-    def parse_from_file(self, filepath: str, save_markdown: bool = True, output_filename: str = None) -> Dict[str, Any]:
-        """
-        Parse survey data from a JSON file and optionally save to markdown.
-        
-        Args:
-            filepath: Path to the JSON file
-            save_markdown: Whether to automatically save markdown output (default: True)
-            output_filename: Optional custom output filename
-            
-        Returns:
-            Dict containing parsed survey data
+            Dict containing summary of files created
         """
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, 'r', encoding='utf-8') as f:
                 survey_data = json.load(f)
             
-            if save_markdown:
-                return self.parse_and_save(survey_data, output_filename)
-            else:
-                return self.parse(survey_data)
+            return self.split_and_save(survey_data, output_dir)
                 
         except FileNotFoundError:
             return {'error': f'File not found: {filepath}'}
         except json.JSONDecodeError as e:
             return {'error': f'Invalid JSON: {str(e)}'}
-    
-    def to_markdown(self, parsed_data: Dict[str, Any]) -> str:
-        """
-        Convert parsed data to Markdown format.
-        
-        Args:
-            parsed_data: Output from parse() method
-            
-        Returns:
-            Formatted markdown string
-        """
-        if 'error' in parsed_data:
-            return f"# Error\n\n{parsed_data['error']}"
-        
-        lines = []
-        lines.append("# Survey Data Summary")
-        lines.append("")
-        
-        # Site Details - ALL attributes in one section
-        lines.append("## SITE DETAILS")
-        lines.append("")
-        
-        # Add all site_info fields
-        for key, value in parsed_data.get('site_info', {}).items():
-            readable_key = key.replace('_', ' ').title()
-            lines.append(f"**{readable_key}:** {value}  ")
-        
-        # Add all additional_attributes fields (no separate section)
-        if parsed_data.get('additional_attributes'):
-            for key, value in parsed_data['additional_attributes'].items():
-                readable_key = key.replace('_', ' ').title()
-                lines.append(f"**{readable_key}:** {value}  ")
-        
-        lines.append("")
-        
-        # Location
-        if parsed_data.get('location'):
-            lines.append("## LOCATION")
-            lines.append("")
-            for key, value in parsed_data['location'].items():
-                readable_key = key.replace('_', ' ').title()
-                lines.append(f"**{readable_key}:** {value}  ")
-            lines.append("")
-        
-        # Site Attachments
-        if parsed_data.get('site_attachments'):
-            lines.append("## SITE PHOTOS")
-            lines.append("")
-            for category, files in parsed_data['site_attachments'].items():
-                readable_category = category.replace('_', ' ').title()
-                lines.append(f"### {readable_category} ({len(files)} file(s))")
-                lines.append("")
-                for file in files:
-                    lines.append(f"- {file}")
-                lines.append("")
-        
-        # Repeat Records
-        if parsed_data.get('repeat_records'):
-            lines.append("## REPEAT RECORDS")
-            lines.append("")
-            for table_name, table_data in parsed_data['repeat_records'].items():
-                readable_table = table_name.replace('_', ' ').title()
-                lines.append(f"### {readable_table}")
-                lines.append(f"*{table_data['record_count']} records*")
-                lines.append("")
-                
-                for record in table_data['records']:
-                    record_num = record.get('record_number', '?')
-                    lines.append(f"#### Record {record_num}")
-                    lines.append("")
-                    for key, value in record.items():
-                        if key == 'attachments':
-                            lines.append(f"**Attachments:** {len(value)} file(s)")
-                            lines.append("")
-                            for att in value:
-                                lines.append(f"- *{att['category']}:* {att['name']}")
-                        elif key != 'attachment_count' and key != 'record_number':
-                            readable_key = key.replace('_', ' ').replace('tia ', '').title()
-                            # Truncate long values
-                            str_value = str(value)
-                            if len(str_value) > 100:
-                                str_value = str_value[:97] + "..."
-                            lines.append(f"**{readable_key}:** {str_value}  ")
-                    lines.append("")
-        
-        lines.append("---")
-        lines.append(f"*Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*")
-        return "\n".join(lines)
-    
-    def to_readable_text(self, parsed_data: Dict[str, Any]) -> str:
-        """
-        Convert parsed data to human-readable text format.
-        
-        Args:
-            parsed_data: Output from parse() method
-            
-        Returns:
-            Formatted text string
-        """
-        if 'error' in parsed_data:
-            return f"Error: {parsed_data['error']}"
-        
-        lines = []
-        lines.append("=" * 80)
-        lines.append("SURVEY DATA SUMMARY")
-        lines.append("=" * 80)
-        lines.append("")
-        
-        # Site Info
-        lines.append("SITE DETAILS")
-        lines.append("-" * 80)
-        for key, value in parsed_data.get('site_info', {}).items():
-            readable_key = key.replace('_', ' ').title()
-            lines.append(f"{readable_key}: {value}")
-        lines.append("")
-        
-        # Location
-        if parsed_data.get('location'):
-            lines.append("LOCATION")
-            lines.append("-" * 80)
-            for key, value in parsed_data['location'].items():
-                readable_key = key.replace('_', ' ').title()
-                lines.append(f"{readable_key}: {value}")
-            lines.append("")
-        
-        # Site Attachments
-        if parsed_data.get('site_attachments'):
-            lines.append("SITE PHOTOS")
-            lines.append("-" * 80)
-            for category, files in parsed_data['site_attachments'].items():
-                readable_category = category.replace('_', ' ').title()
-                lines.append(f"{readable_category}: {len(files)} file(s)")
-                for file in files:
-                    lines.append(f"  - {file}")
-            lines.append("")
-        
-        # Additional Attributes
-        if parsed_data.get('additional_attributes'):
-            lines.append("ADDITIONAL ATTRIBUTES")
-            lines.append("-" * 80)
-            for key, value in parsed_data['additional_attributes'].items():
-                readable_key = key.replace('_', ' ').title()
-                lines.append(f"{readable_key}: {value}")
-            lines.append("")
-        
-        # Repeat Records
-        if parsed_data.get('repeat_records'):
-            lines.append("REPEAT RECORDS")
-            lines.append("-" * 80)
-            for table_name, table_data in parsed_data['repeat_records'].items():
-                readable_table = table_name.replace('_', ' ').title()
-                lines.append(f"\n{readable_table}: {table_data['record_count']} records")
-                lines.append("")
-                
-                for record in table_data['records']:
-                    record_num = record.pop('record_number', '?')
-                    lines.append(f"  Record {record_num}:")
-                    for key, value in record.items():
-                        if key == 'attachments':
-                            lines.append(f"    Attachments: {len(value)} file(s)")
-                            for att in value:
-                                lines.append(f"      - {att['category']}: {att['name']}")
-                        elif key != 'attachment_count':
-                            readable_key = key.replace('_', ' ').replace('tia ', '').title()
-                            # Truncate long values
-                            str_value = str(value)
-                            if len(str_value) > 100:
-                                str_value = str_value[:97] + "..."
-                            lines.append(f"    {readable_key}: {str_value}")
-                    lines.append("")
-        
-        lines.append("=" * 80)
-        return "\n".join(lines)
+        except Exception as e:
+            return {'error': f'Error processing file: {str(e)}'}
 
-
-# Example usage
 if __name__ == "__main__":
-    # Example 1: Parse from file and auto-save to markdown
-    parser = SurveyParser()
+    splitter = SurveyJSONSplitter(output_dir="output")
+
+    result = splitter.split_from_file('20251023205622_1450 Experiment Farm Rd_US632993_Structure Climb Inspection.json')
     
-    # This will automatically create a .md file
-    # parsed = parser.parse_from_file('CTI_10105_BostonTurnpikeBolton_CompoundPayload.json')
-    # print(f"Output saved to: {parsed.get('output_file', 'N/A')}")
-    
-    # # Example 2: Parse without saving markdown
-    # parsed = parser.parse_from_file('CTI_10105_BostonTurnpikeBolton_CompoundPayload.json', save_markdown=False)
-    # print(json.dumps(parsed, indent=2))
-    
-    # Example 3: Parse and save with custom filename
-    parsed = parser.parse_from_file('CTI_10105_BostonTurnpikeBolton_CompoundPayload.json', output_filename='my_custom_report.md')
-    
-    # Example 4: Parse from dict and save
-    # with open('survey.json', 'r') as f:
-    #     survey_data = json.load(f)
-    # parsed = parser.parse_and_save(survey_data)
-    
-    # Example 5: Get readable text output (not markdown)
-    # readable_output = parser.to_readable_text(parsed)
-    # print(readable_output)
+    if 'error' in result:
+        print(f"Error: {result['error']}")
+    else:
+        print(f"\n✓ Split complete!")
+        print(f"✓ Customer Site ID: {result['customer_site_id']}")
+        print(f"✓ Survey Type: {result['survey_type']}")
+        print(f"✓ Total files created: {result['total_files']}")

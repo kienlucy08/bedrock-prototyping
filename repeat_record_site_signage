@@ -1,0 +1,50 @@
+{
+  "metadata": {
+    "section_type": "repeat_records",
+    "record_type": "Site Signage S",
+    "customer_site_id": "10105",
+    "survey_type": "compound",
+    "total_records": 3,
+    "total_photos": 3
+  },
+  "data": {
+    "records": [
+      {
+        "record_number": 1,
+        "attachments": {
+          "count": 1,
+          "files": [
+            {
+              "field_name": "site_signage_photo",
+              "filename": "CTI_10105_additional_signage120250801-164221.jpg"
+            }
+          ]
+        }
+      },
+      {
+        "record_number": 2,
+        "attachments": {
+          "count": 1,
+          "files": [
+            {
+              "field_name": "site_signage_photo",
+              "filename": "CTI_10105_additional_signage220250801-165042.jpg"
+            }
+          ]
+        }
+      },
+      {
+        "record_number": 3,
+        "attachments": {
+          "count": 1,
+          "files": [
+            {
+              "field_name": "site_signage_photo",
+              "filename": "CTI_10105_additional_signage320250801-165050.jpg"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
