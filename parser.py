@@ -340,8 +340,8 @@ class SurveyJSONSplitter:
         if apex_height is not None:
             summary['apex_height'] = apex_height
         
-        print(f"\n✓ Successfully split survey data into {len(files_created)} files")
-        print(f"✓ Output directory: {self.output_dir}")
+        print(f"\nSuccessfully split survey data into {len(files_created)} files")
+        print(f"Output directory: {self.output_dir}")
         print(f"\nFiles created:")
         for file in files_created:
             print(f"  - {file}")
