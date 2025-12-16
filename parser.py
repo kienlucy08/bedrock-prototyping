@@ -9,7 +9,7 @@ class SurveyJSONSplitter:
     """
     Parses survey payload and splits it into separate JSON files by section.
     Creates 4 files: site_details.json, location.json, site_photos.json, 
-    and repeat_records.json (consolidated all repeat types with single-line details).
+    and repeat_records.json (organized by agent category).
     """
     
     def __init__(self, output_dir: str = "output"):
@@ -26,6 +26,46 @@ class SurveyJSONSplitter:
             'issue', 'issues', 'description', 'note', 'notes', 
             'type', 'types', 'context', 'severity', 'status',
             'height', 'heights', 'location', 'locations'
+        }
+        
+        # Define agent categories and their associated repeat record types
+        self.agent_categories = {
+            'tower_mounted_equipment': [
+                'radiation_source_s',
+                'light_s',
+                'other_appurtenance_s',
+                'guy_attachment_s',
+                'rru_alpha_s', 'rru_beta_s', 'rru_gamma_s', 'rru_delta_s', 'rru_epsilon_s', 'rru_zeta_s',
+                'antenna_alpha_s', 'antenna_beta_s', 'antenna_gamma_s', 'antenna_delta_s', 'antenna_epsilon_s', 'antenna_zeta_s',
+                'side_markers_s',
+                'lighting_controllers_s'
+            ],
+            'ground_level_infrastructure': [
+                'carrier_facilities_s',
+                'generators_s',
+                'fuels_s',
+                'site_signage_s',
+                'grounding_photos_s'
+            ],
+            'guy_wire_systems': [
+                'compound_a_tensions_s', 'compound_b_tensions_s', 'compound_c_tensions_s',
+                'compound_aa_tensions_s', 'compound_bb_tensions_s', 'compound_cc_tensions_s',
+                'compound_a_photos_s', 'compound_b_photos_s', 'compound_c_photos_s',
+                'compound_aa_photos_s', 'compound_bb_photos_s', 'compound_cc_photos_s',
+                'middle_ring_sizes_s',
+                'inner_ring_sizes_s'
+            ],
+            'observation_measurement': [
+                'observation_elevations_s',
+                'leg_a_observations_s', 'leg_b_observations_s', 'leg_c_observations_s', 'leg_d_observations_s'
+            ],
+            'safety_compliance': [
+                'tia_info_s',
+            ],
+            'administrative_quality': [
+                'catch_all_s',
+                'flag_s'
+            ]
         }
         
     def _format_timestamp(self, unix_ms: Any) -> str:
@@ -106,6 +146,14 @@ class SurveyJSONSplitter:
         """Extract apex_height from attributes if it exists"""
         return attrs.get('apex_height')
     
+    def _get_agent_category(self, record_type: str) -> str:
+        """Determine which agent category a record type belongs to"""
+        for category, types in self.agent_categories.items():
+            if record_type in types:
+                return category
+        # Default category if not found
+        return 'uncategorized'
+    
     def _extract_site_details(self, attrs: Dict[str, Any], customer_site_id: str, 
                              survey_type: str, apex_height: Optional[Any]) -> Dict[str, Any]:
         """Create site_details.json content"""
@@ -172,29 +220,30 @@ class SurveyJSONSplitter:
             }
         }
     
-    def _extract_all_repeat_records(self, repeats: Dict[str, List[Dict]], 
-                                    customer_site_id: str, survey_type: str,
-                                    apex_height: Optional[Any]) -> Dict[str, Any]:
+    def _extract_repeat_records_by_category(self, repeats: Dict[str, List[Dict]], 
+                                           customer_site_id: str, survey_type: str,
+                                           apex_height: Optional[Any]) -> Dict[str, Any]:
         """
-        Create consolidated repeat_records.json with single-line details format.
-        Format: 
-        {
-          "record_type": "TIA Infos",
-          "total_records": 8,
-          "total_photos": 24,
-          "records": [
-            {"record_1": {"photo_count": 3, "details": "location: leg_a, issue: Feedline not secured, severity: 3"}},
-            {"record_2": {...}}
-          ]
-        }
+        Create consolidated repeat records structure organized by agent category.
+        Returns a single JSON structure with all categories.
         """
-        all_record_types = []
-        total_records_overall = 0
-        total_photos_overall = 0
+        # Initialize structure for each category
+        category_data = {category: [] for category in self.agent_categories.keys()}
+        category_data['uncategorized'] = []  # For any records that don't match
         
+        # Track overall statistics
+        overall_stats = {
+            'total_record_types': 0,
+            'total_records': 0,
+            'total_photos': 0
+        }
+        
+        # Organize records by category
         for table_name, records in repeats.items():
             if not records:
                 continue
+            
+            category = self._get_agent_category(table_name)
             
             type_photo_count = 0
             type_records = []
@@ -205,31 +254,26 @@ class SurveyJSONSplitter:
                 # Extract priority fields as single-line string
                 details_string = self._extract_priority_attributes_as_string(attrs)
                 
-                # Count photos (no names, no URLs)
+                # Count photos
                 photo_count = 0
                 if 'attachments' in record and record['attachments']:
-                    for category, files in record['attachments'].items():
+                    for cat, files in record['attachments'].items():
                         if files:
                             photo_count += len(files)
                 
                 type_photo_count += photo_count
                 
-                # Build individual record with single-line format
+                # Build individual record
                 record_data = {
                     "photo_count": photo_count
                 }
                 
-                # Add details string if there are any priority attributes
                 if details_string:
                     record_data["details"] = details_string
                 
-                # Format: {"record_1": {...}, "record_2": {...}}
                 type_records.append({f"record_{i}": record_data})
             
-            total_records_overall += len(records)
-            total_photos_overall += type_photo_count
-            
-            # Create summary structure for this record type
+            # Add this record type to its category
             record_type_summary = {
                 "record_type": table_name,
                 "total_records": len(records),
@@ -237,31 +281,57 @@ class SurveyJSONSplitter:
                 "records": type_records
             }
             
-            all_record_types.append(record_type_summary)
+            category_data[category].append(record_type_summary)
+            
+            # Update overall stats
+            overall_stats['total_record_types'] += 1
+            overall_stats['total_records'] += len(records)
+            overall_stats['total_photos'] += type_photo_count
         
+        # Build category summaries
+        categories_list = []
+        
+        for category, record_types in category_data.items():
+            if not record_types:  # Skip empty categories
+                continue
+            
+            total_records = sum(rt['total_records'] for rt in record_types)
+            total_photos = sum(rt['total_photos'] for rt in record_types)
+            
+            category_summary = {
+                "agent_category": category,
+                "total_record_types": len(record_types),
+                "total_records": total_records,
+                "total_photos": total_photos,
+                "record_types": record_types
+            }
+            
+            categories_list.append(category_summary)
+        
+        # Build final consolidated structure
         metadata = {
             "section_type": "repeat_records",
             "customer_site_id": customer_site_id,
             "survey_type": survey_type,
-            "total_record_types": len(all_record_types),
-            "total_records": total_records_overall,
-            "total_photos": total_photos_overall
+            "total_categories": len(categories_list),
+            "total_record_types": overall_stats['total_record_types'],
+            "total_records": overall_stats['total_records'],
+            "total_photos": overall_stats['total_photos']
         }
         
-        # Add apex_height to metadata if it exists
         if apex_height is not None:
             metadata["apex_height"] = apex_height
         
         return {
             "metadata": metadata,
             "data": {
-                "record_types": all_record_types
+                "categories": categories_list
             }
         }
     
     def split_and_save(self, survey_data: Dict[str, Any], output_dir: str = None) -> Dict[str, Any]:
         """
-        Split survey data into 4 separate JSON files.
+        Split survey data into separate JSON files by section.
         
         Args:
             survey_data: The complete survey JSON payload
@@ -313,9 +383,9 @@ class SurveyJSONSplitter:
             json.dump(site_photos, f, indent=2, ensure_ascii=False)
         files_created.append('site_photos.json')
         
-        # 4. Create single consolidated repeat_records.json
+        # 4. Create single consolidated repeat_records.json organized by category
         if 'repeats' in feature and feature['repeats']:
-            repeat_records = self._extract_all_repeat_records(
+            repeat_records = self._extract_repeat_records_by_category(
                 feature['repeats'],
                 customer_site_id,
                 survey_type,
@@ -350,7 +420,7 @@ class SurveyJSONSplitter:
     
     def split_from_file(self, filepath: str, output_dir: str = None) -> Dict[str, Any]:
         """
-        Split survey data from a JSON file into 4 separate JSON files.
+        Split survey data from a JSON file into separate JSON files by section.
         
         Args:
             filepath: Path to the input JSON file
