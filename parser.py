@@ -68,6 +68,10 @@ class SurveyJSONSplitter:
             ]
         }
         
+    def _get_current_datetime(self) -> str:
+        """Get current datetime in ISO 8601 format"""
+        return datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
     def _format_timestamp(self, unix_ms: Any) -> str:
         """Convert Unix millisecond timestamp to readable date"""
         try:
@@ -162,7 +166,8 @@ class SurveyJSONSplitter:
         metadata = {
             "section_type": "site_details",
             "customer_site_id": customer_site_id,
-            "survey_type": survey_type
+            "survey_type": survey_type,
+            "date_parsed": self._get_current_datetime()
         }
         
         # Add apex_height to metadata if it exists
@@ -188,7 +193,8 @@ class SurveyJSONSplitter:
             "metadata": {
                 "section_type": "location",
                 "customer_site_id": customer_site_id,
-                "survey_type": survey_type
+                "survey_type": survey_type,
+                "date_parsed": self._get_current_datetime()
             },
             "data": location_data
         }
@@ -212,6 +218,7 @@ class SurveyJSONSplitter:
                 "section_type": "site_photos",
                 "customer_site_id": customer_site_id,
                 "survey_type": survey_type,
+                "date_parsed": self._get_current_datetime(),
                 "total_photos": total_photos,
                 "total_categories": len(photos_by_category)
             },
@@ -313,6 +320,7 @@ class SurveyJSONSplitter:
             "section_type": "repeat_records",
             "customer_site_id": customer_site_id,
             "survey_type": survey_type,
+            "date_parsed": self._get_current_datetime(),
             "total_categories": len(categories_list),
             "total_record_types": overall_stats['total_record_types'],
             "total_records": overall_stats['total_records'],
@@ -404,7 +412,8 @@ class SurveyJSONSplitter:
             'files_created': files_created,
             'total_files': len(files_created),
             'customer_site_id': customer_site_id,
-            'survey_type': survey_type
+            'survey_type': survey_type,
+            'date_parsed': self._get_current_datetime()
         }
         
         if apex_height is not None:
@@ -412,6 +421,7 @@ class SurveyJSONSplitter:
         
         print(f"\nSuccessfully split survey data into {len(files_created)} files")
         print(f"Output directory: {self.output_dir}")
+        print(f"Date parsed: {summary['date_parsed']}")
         print(f"\nFiles created:")
         for file in files_created:
             print(f"  - {file}")
