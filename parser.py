@@ -23,9 +23,11 @@ class SurveyJSONSplitter:
         
         # Priority fields to extract from repeat records (if they exist)
         self.priority_fields = {
-            'issue', 'issues', 'description', 'note', 'notes', 
-            'type', 'types', 'context', 'severity', 'status',
-            'height', 'heights', 'location', 'locations'
+            'issue', 'description', 'notes', 'route',
+            'type', 'types', 'context', 'severity', 'status', 'leg',
+            'height', 'location', 'elev', 'label', 'new', 'old',
+            'deg', 'min', 'sec', 'shift', 'color', 'reg', 'big', 'level', 'value',
+            'pos', 'name', 'number', 'make', 'model', 'fuel'
         }
         
         # Define agent categories and their associated repeat record types
@@ -34,30 +36,33 @@ class SurveyJSONSplitter:
                 'radiation_source_s',
                 'light_s',
                 'other_appurtenance_s',
-                'guy_attachment_s',
-                'rru_alpha_s', 'rru_beta_s', 'rru_gamma_s', 'rru_delta_s', 'rru_epsilon_s', 'rru_zeta_s',
-                'antenna_alpha_s', 'antenna_beta_s', 'antenna_gamma_s', 'antenna_delta_s', 'antenna_epsilon_s', 'antenna_zeta_s',
-                'side_markers_s',
-                'lighting_controllers_s'
+                'guy_attachment_s'
+            ],
+            'close_out_agent': [
+                'rru_data_alpha_group_s', 'rru_data_beta_group_s', 'rru_data_gamma_group_s', 'rru_data_delta_group_s', 'rru_data_epsilon_group_s', 'rru_data_zeta_group_s',
+                'ant_data_alpha_group_s', 'ant_data_beta_group_s', 'ant_data_gamma_group_s', 'ant_data_delta_group_s', 'ant_data_epsilon_group_s', 'ant_data_zeta_group_s',
+                'side_marker_s',
+                'lighting_controller_s', 'asset_serials_s'
             ],
             'ground_level_infrastructure': [
                 'carrier_facilities_s',
-                'generators_s',
-                'fuels_s',
+                'generator_s',
+                'fuel_s',
                 'site_signage_s',
                 'grounding_photos_s'
             ],
-            'guy_wire_systems': [
-                'compound_a_tensions_s', 'compound_b_tensions_s', 'compound_c_tensions_s',
-                'compound_aa_tensions_s', 'compound_bb_tensions_s', 'compound_cc_tensions_s',
-                'compound_a_photos_s', 'compound_b_photos_s', 'compound_c_photos_s',
-                'compound_aa_photos_s', 'compound_bb_photos_s', 'compound_cc_photos_s',
+            'guy_facilities_infrastructure': [
+                'cmpd_a_photos_s', 'cmpd_b_photos_s', 'cmpd_c_photos_s',
+                'cmpd_aa_photos_s', 'cmpd_bb_photos_s', 'cmpd_cc_photos_s',
                 'middle_ring_sizes_s',
-                'inner_ring_sizes_s'
+                'inner_ring_sizes_s', 'wire_sizes_s'
+            ],
+            'guy_wire_tensions': [
+                'cmpd_a_tensions_s', 'cmpd_b_tensions_s', 'cmpd_c_tensions_s', 'cmpd_aa_tensions_s', 'cmpd_bb_tensions_s', 'cmpd_cc_tensions_s'
             ],
             'observation_measurement': [
                 'observation_elevations_s',
-                'leg_a_observations_s', 'leg_b_observations_s', 'leg_c_observations_s', 'leg_d_observations_s'
+                'leg_a_obs_s', 'leg_b_obs_s', 'leg_c_obs_s', 'leg_d_obs_s'
             ],
             'safety_compliance': [
                 'tia_info_s',
@@ -456,7 +461,7 @@ class SurveyJSONSplitter:
 if __name__ == "__main__":
     splitter = SurveyJSONSplitter(output_dir="output")
 
-    result = splitter.split_from_file('20251023205622_1450 Experiment Farm Rd_US632993_Structure Climb Inspection.json')
+    result = splitter.split_from_file('20251208203254_AhrensRd_AhrensRd_Plumb & Twist.json')
     
     if 'error' in result:
         print(f"Error: {result['error']}")
