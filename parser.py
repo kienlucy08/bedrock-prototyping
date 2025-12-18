@@ -461,7 +461,7 @@ class SurveyJSONSplitter:
 if __name__ == "__main__":
     splitter = SurveyJSONSplitter(output_dir="output")
 
-    result = splitter.split_from_file('20251217173032_DANNY’s HAUS_3667_TEST Light System COP.json')
+    result = splitter.split_from_file('20251208203317_Glen arbor_Glen arbor_Guy Facilities Inspection.json')
     
     if 'error' in result:
         print(f"Error: {result['error']}")
