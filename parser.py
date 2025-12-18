@@ -54,11 +54,14 @@ class SurveyJSONSplitter:
             'guy_facilities_infrastructure': [
                 'cmpd_a_photos_s', 'cmpd_b_photos_s', 'cmpd_c_photos_s',
                 'cmpd_aa_photos_s', 'cmpd_bb_photos_s', 'cmpd_cc_photos_s',
-                'middle_ring_sizes_s',
+                'cmpd_aaa_photos_s', 'cmpd_bbb_photos_s', 'cmpd_ccc_photos_s',
+                'middle_ring_sizes_s', 'outer_ring_sizes_s',
                 'inner_ring_sizes_s', 'wire_sizes_s'
             ],
             'guy_wire_tensions': [
-                'cmpd_a_tensions_s', 'cmpd_b_tensions_s', 'cmpd_c_tensions_s', 'cmpd_aa_tensions_s', 'cmpd_bb_tensions_s', 'cmpd_cc_tensions_s'
+                'cmpd_a_tensions_s', 'cmpd_b_tensions_s', 'cmpd_c_tensions_s', 
+                'cmpd_aa_tensions_s', 'cmpd_bb_tensions_s', 'cmpd_cc_tensions_s',
+                'cmpd_aaa_tensions_s', 'cmpd_bbb_tensions_s', 'cmpd_ccc_tensions_s'
             ],
             'pnt_agent': [
                 'observation_elevations_s',
