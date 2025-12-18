@@ -27,7 +27,7 @@ class SurveyJSONSplitter:
             'type', 'types', 'context', 'severity', 'status', 'leg',
             'height', 'location', 'elev', 'label', 'new', 'old',
             'deg', 'min', 'sec', 'shift', 'color', 'reg', 'big', 'level', 'value',
-            'pos', 'name', 'number', 'make', 'model', 'fuel'
+            'pos', 'name', 'number', 'make', 'model', 'fuel', 'desc'
         }
         
         # Define agent categories and their associated repeat record types
@@ -60,7 +60,7 @@ class SurveyJSONSplitter:
             'guy_wire_tensions': [
                 'cmpd_a_tensions_s', 'cmpd_b_tensions_s', 'cmpd_c_tensions_s', 'cmpd_aa_tensions_s', 'cmpd_bb_tensions_s', 'cmpd_cc_tensions_s'
             ],
-            'observation_measurement': [
+            'pnt_agent': [
                 'observation_elevations_s',
                 'leg_a_obs_s', 'leg_b_obs_s', 'leg_c_obs_s', 'leg_d_obs_s'
             ],
@@ -69,7 +69,7 @@ class SurveyJSONSplitter:
             ],
             'administrative_quality': [
                 'catch_all_s',
-                'flag_s'
+                'flags_s'
             ]
         }
         
@@ -461,7 +461,7 @@ class SurveyJSONSplitter:
 if __name__ == "__main__":
     splitter = SurveyJSONSplitter(output_dir="output")
 
-    result = splitter.split_from_file('20251208203254_AhrensRd_AhrensRd_Plumb & Twist.json')
+    result = splitter.split_from_file('20251217173032_DANNY’s HAUS_3667_TEST Light System COP.json')
     
     if 'error' in result:
         print(f"Error: {result['error']}")
