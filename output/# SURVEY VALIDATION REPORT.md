@@ -1,187 +1,129 @@
-## Payload Validation Report: Glen arbor Guy Survey
+# SURVEY VALIDATION REPORT - SITE Glen arbor
 
-**Overall Status:** ❌ **FAIL** - Critical issues prevent production deployment
-
----
-
-### Executive Summary
-
-The Glen arbor guy survey payload has been comprehensively validated across all sections. While the payload demonstrates **strong photo documentation (67 photos)** and successful validation of infrastructure, safety compliance, and site photos sections, **critical data integrity issues** exist in multiple core sections that prevent approval.
-
-**Key Statistics:**
-- Customer Site ID: Glen arbor
-- Survey Type: Guy Facilities
-- Structure Type: Guyed Tower
-- Total Records: 47
-- Total Photos: 67
-- Validation Date: 2025-12-18
+## SITE INFO
+**Site:** Glen arbor | **Customer:** Glen arbor
+**Tech:** Samuel Fagan | **Type:** guy | **Structure:** guy
+**Inspected:** 2025-06-24 17:33:00
+**Survey Duration:** 92 minutes
 
 ---
 
-### Validation Results by Section
+## STATUS: ⚠ NEEDS CORRECTIONS
 
-#### ✅ **PASS Sections (3/7)**
+### SECTION OVERVIEW
 
-**1. Site Photos Section**
-- Status: ✓ PASS
-- 55 photos across 46 categories
-- All 9 compounds fully documented (A, B, C, AA, BB, CC, AAA, BBB, CCC)
-- Complete photo sets for each compound (left, back, right, head, rod)
-- Tech signature present
-- **0 critical errors, 0 warnings**
+**Site Details:** ⚠ FAIL
+- Completeness: 95% (core fields complete)
+- Critical: 2 | Warnings: 0
+- Ring count mismatches - inner_ring_count and middle_ring_count do not align with documented compound infrastructure
 
-**2. Guy Facilities Infrastructure**
-- Status: ✓ PASS
-- 16 records with 24 photos
-- Inner ring (Level 1): Complete for compounds A, B, C
-- Middle ring (Levels 2-4): Complete for compounds AA, BB, CC
-- All wire sizes properly documented (eight, nine)
-- **0 critical errors, 0 warnings**
+**Location:** ✓ PASS
+- Coordinates: 44.82126814°, -85.99678814° (10 decimals)
+- Critical: 0 | Warnings: 0
+- Sub-centimeter precision, valid Glen Arbor, Michigan location
 
-**3. Safety & Compliance**
-- Status: ✓ PASS
-- 4 TIA compliance records with 13 photos
-- All severity levels properly classified (2-3)
-- Deficiencies documented: guy wire serving, vegetation, safety wire issues
-- **0 critical errors, 0 warnings**
+**Site Photos:** ✓ PASS
+- Coverage: 46/46 categories (55 total photos)
+- Critical: 0 | Warnings: 0
+- Complete compound documentation (all 9 compounds), tech signature present
 
----
+**Repeat Records:** 47 records | 67 photos
 
-#### ⚠️ **CONDITIONAL PASS (1/7)**
+*Guy Facilities Infrastructure:* ✓ PASS | 24 records, 36 photos | 0C, 0W
+*Safety Compliance:* ✗ FAIL | 4 records, 13 photos | 1C, 1W
+*Guy Wire Tensions:* ✓ PASS | 18 records, 18 photos | 0C, 0W
+*Administrative & Quality:* ✓ PASS | 1 record (empty auto-gen) | 0C, 0W
 
-**4. Location Section**
-- Status: ⚠️ CONDITIONAL PASS
-- Coordinates: 44.82126814°, -85.99678814° (valid, Glen Arbor, MI)
-- Spatial reference: EPSG:4326 (WGS 84) - correct
-- Precision: Excellent (8 decimal places ≈ 1.1mm accuracy)
-- **0 critical errors, 7 warnings** (missing supporting metadata)
-- Missing: GPS accuracy metadata, address fields, elevation data
+**TOTALS:** 3 critical errors | 1 warning | 94% complete
 
 ---
 
-#### ❌ **FAIL Sections (3/7)**
+## CRITICAL ERRORS (3)
 
-**5. Site Details Section**
-- Status: ❌ FAIL
-- **4 critical errors:**
-  1. **Future timestamp error**: survey_start = Dec 24, 2025 (after parse date Dec 18, 2025)
-  2. **Future timestamp error**: survey_end = Dec 24, 2025 (after parse date Dec 18, 2025)
-  3. **Missing apex_height**: Required field for guy structures
-  4. **Ring count inconsistency**: Documentation shows incomplete outer ring data
-- **1 warning:** Missing apex_height_method
-- 82% completeness score
+**Site Details (2):**
 
-**6. Guy Wire Tensions** (CRITICAL SECTION)
-- Status: ❌ FAIL
-- **12 critical errors:**
-  - Missing `dillon_check` field in ALL 12 tension records (required for tension verification)
-- **15 warnings:**
-  - 12 tension values exceed 1000 lbs threshold (range: 1780-3520 lbs)
-  - 3 instances of tension imbalances between compounds (>30% variation)
-- All tension readings are abnormally high but within wire breaking strength limits
-- Note: Guy wire tensions are the CORE technical data for guy surveys
+1. **site_details - inner_ring_count**
+   - Current: 1
+   - Required: 3
+   - Rule: RING_COUNT_COMPOUND_CONSISTENCY
+   - Fix: Update inner_ring_count to 3 to match documented inner ring compounds (A, B, C)
 
-**7. Administrative & Quality**
-- Status: ❌ FAIL
-- **1 critical error:**
-  - Missing `catch_all_desc` field (required description)
-- **1 warning:**
-  - No supporting photos (0 photos when typically 1+ expected)
-- Incomplete catch-all record
+2. **site_details - middle_ring_count**
+   - Current: 3
+   - Required: 6
+   - Rule: RING_COUNT_COMPOUND_CONSISTENCY
+   - Fix: Update middle_ring_count to 6 to match documented middle ring compounds (AA, BB, CC, AAA, BBB, CCC)
+
+**Safety Compliance (1):**
+
+3. **tia_info_s - Record #3 - tia_location**
+   - Current: MISSING
+   - Required: Valid location (compass direction or compound identifier)
+   - Rule: TIA_LOCATION_REQUIRED
+   - Fix: Add tia_location field specifying where ungrounded guy anchor safety wire (H2.a.ii) is located
 
 ---
 
-### Critical Issues Requiring Immediate Action
+## CROSS-VALIDATION FINDINGS
 
-1. **Timestamp Integrity (Site Details)**
-   - Survey timestamps indicate future dates (Dec 24, 2025)
-   - Parse date shows Dec 18, 2025
-   - Action: Correct survey_start and survey_end to valid historical dates
+✓ All cross-section validations passed
 
-2. **Guy Wire Tension Verification (Guy Tensions)**
-   - ALL 12 tension records missing `dillon_check` field
-   - This field verifies tension measurement equipment calibration
-   - Action: Add dillon_check = true/false for each tension record
+**Compound Infrastructure Integrity:**
+- 9 compounds documented across all sections (A, B, C, AA, BB, CC, AAA, BBB, CCC)
+- Guy Facilities: 24 records covering all 9 compounds
+- Site Photos: Complete coverage of all 9 compounds
+- Guy Wire Tensions: 18 records with 100% photo documentation
 
-3. **Missing Structural Height (Site Details)**
-   - apex_height is required for guy structure analysis
-   - Action: Provide tower apex height measurement
+**Photo Count Verification:**
+- Metadata: 67 total photos
+- Site Photos: 55 photos
+- Guy Facilities: 36 photos
+- Safety Compliance: 13 photos
+- Guy Wire Tensions: 18 photos
+- Administrative: 0 photos
+- Total verified: 67 photos ✓ Match confirmed
 
-4. **Incomplete Administrative Record**
-   - catch_all_desc field required but not provided
-   - Action: Add meaningful description or remove placeholder record
-
----
-
-### Data Quality Concerns
-
-**High Tension Values:**
-All 12 guy wire tension readings exceed the typical 1000 lbs maximum:
-- Inner ring (Level 1): 1780-2220 lbs
-- Middle ring (Levels 2-4): 1780-3520 lbs
-
-While these values don't exceed the breaking strength of 5/8" and 9/16" EHS wire, they indicate potential:
-- Overload conditions requiring engineering review
-- Measurement calibration issues
-- Unusual structural loading
-
-**Tension Imbalances:**
-Variations >30% detected between corresponding compound levels, which may indicate:
-- Uneven guy wire loading
-- Structural stability concerns
-- Required engineering assessment
+**Ring Structure Validation:**
+- Physical compound count: 9 (3 inner + 6 middle/outer)
+- Site details reports: inner=1, middle=3 ✗ Mismatch
+- Guy facilities infrastructure confirms: 3 inner compounds + 6 middle compounds
 
 ---
 
-### Completeness Assessment
+## WARNINGS (1)
 
-| Section | Completeness | Status |
-|---------|-------------|--------|
-| Site Details | 82% | ❌ Fail |
-| Location | 75% | ⚠️ Conditional |
-| Site Photos | 100% | ✅ Pass |
-| Guy Facilities Infrastructure | 100% | ✅ Pass |
-| Safety & Compliance | 100% | ✅ Pass |
-| Guy Wire Tensions | 85% | ❌ Fail |
-| Administrative & Quality | 50% | ❌ Fail |
-| **Overall** | **84%** | **❌ Fail** |
+**Safety Compliance (1):**
+- tia_context (Record #2): Current=MISSING | Recommended=Descriptive context | Note: Optional field improves TIA documentation quality
 
 ---
 
-### Recommendations
+## NEXT STEPS
 
-**Priority 1 - Blocking Issues:**
-1. Correct timestamp errors in Site Details (survey_start, survey_end)
-2. Add apex_height to Site Details
-3. Add dillon_check field to all 12 guy wire tension records
-4. Complete catch_all_desc in administrative record
+**Priority Actions:**
+1. **Site Details:** Fix 2 critical errors
+   - Update inner_ring_count from 1 to 3
+   - Update middle_ring_count from 3 to 6
+   - Estimated time: 2 min
 
-**Priority 2 - Quality Improvements:**
-5. Review and verify high tension readings (all >1000 lbs)
-6. Investigate tension imbalances between compounds
-7. Add missing location metadata (GPS accuracy, address, elevation)
-8. Add photos to catch_all record for documentation
+2. **Safety Compliance:** Fix 1 critical error
+   - Add tia_location to Record #3 (H2.a.ii - ungrounded safety wire)
+   - Specify compound or direction where issue was observed
+   - Estimated time: 3 min
 
-**Priority 3 - Outer Ring Data:**
-9. Complete or remove outer ring data (AAA, BBB, CCC compounds at levels 5-6)
-10. Currently flagged as "uncategorized" - requires proper categorization
+**Total Estimated Time:** 5 minutes
+**Site Revisit Required:** No - All corrections are data entry fixes
 
 ---
 
-### Production Readiness
+## VALIDATION SUMMARY
 
-**Current Status:** ❌ NOT READY FOR PRODUCTION
+**Passed Validation Rules:** 44
+**Failed Validation Rules:** 3
+**Cross-Validations:** 3/3
 
-**Blocking Items:** 17 critical errors across 4 sections
-**Total Issues:** 17 critical errors + 24 warnings = 41 total issues
-
-**Estimated Remediation Effort:**
-- Priority 1 corrections: 2-3 hours
-- Priority 2 verification: 4-6 hours
-- Priority 3 enhancements: 1-2 hours
-
-Once Priority 1 blocking issues are resolved, re-validation is recommended before production deployment.
+**Survey Type Notes:**
+Guy facility surveys require precise ring count documentation. This survey has comprehensive compound infrastructure documentation (9 compounds fully photographed and measured) but the aggregate ring counts in site_details need adjustment to reflect the actual 3-inner + 6-middle configuration. Safety compliance documentation is strong (4 TIA records, 100% photo coverage) but requires location data for complete regulatory compliance.
 
 ---
 
-*Validation completed on 2025-12-18 08:22:39*
+END OF VALIDATION REPORT
