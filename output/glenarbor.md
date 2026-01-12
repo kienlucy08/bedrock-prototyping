@@ -38,6 +38,123 @@ The survey is **production-ready** and meets all critical validation standards f
 ![alt text](image.png)
 
 ---
+# SURVEY VALIDATION REPORT - SITE Glen Arbor
+
+## SITE INFO
+**Site:** Glen Arbor | **Survey Type:** compound
+**Tech:** Samuel Fagan | **Inspected:** 2025-06-24
+
+---
+
+## STATUS: ✓ READY
+
+### SECTION OVERVIEW
+
+**Site Details:** ✓ PASS
+- Completeness: 100% (5/5 required fields)
+- Critical: 0 | Warnings: 0
+- All binary flags validated, generator_bin="yes" cross-validated with infrastructure records
+
+**Location:** ✓ PASS
+- Coordinates: 44.82126814, -85.99678814 (8 decimal precision - excellent)
+- Critical: 0 | Warnings: 0
+- Glen Arbor, Michigan location confirmed, EPSG:4326 correct
+
+**Site Photos:** ✓ PASS
+- Coverage: 3/3 required categories (8 total photos)
+- Critical: 0 | Warnings: 2
+- All mandatory photos present (glamour, tech signature, FCC sign)
+- Warnings are non-blocking: owner power meter photos conditional on field existence
+
+**Repeat Records:** 11 records | 27 photos
+
+*Ground Level Infrastructure:* ✓ PASS | 3 types, 9 records | 0 Critical, 6 Warnings
+*Safety & Compliance:* ✓ PASS | 1 type, 2 records | 0 Critical, 0 Warnings
+
+**TOTALS:** 0 critical errors | 8 warnings | 100% complete
+
+---
+
+## CRITICAL ERRORS (0)
+
+✓ No critical errors detected
+
+All validation rules satisfied:
+- Required metadata fields present and valid
+- Binary flag cross-validation passed (generator_bin="yes" with corresponding generator records)
+- All TIA deficiency records include required tia_location, tia_severity (1-3), and tia_issue fields
+- Photo documentation requirements met
+- Coordinate precision and spatial reference validated
+- Structure type matches survey type (compound)
+
+---
+
+## CROSS-VALIDATION FINDINGS
+
+✓ All cross-section validations passed
+
+**Binary Flag Consistency:**
+- generator_bin="yes" → 2 generator records found in ground_level_infrastructure ✓
+- fuel_bin="no" → No fuel records required ✓
+- TIA records present → Safety compliance section validated ✓
+
+**Photo Count Integrity:**
+- Site Photos: 8 photos documented
+- Ground Infrastructure: 23 photos documented  
+- Safety Compliance: 4 photos documented
+- Total: 35 photos across all sections
+
+**Required Field Dependencies:**
+- TIA Record 1: Ungrounded compound (severity=2, valid range 1-3) ✓
+- TIA Record 2: Vegetation encroachment (severity=3, valid range 1-3) ✓
+- All generator records include generator_location as required ✓
+
+---
+
+## WARNINGS (8)
+
+**Site Photos (2):**
+- owner_power_meter_photo: Missing | Conditional: Required if owner_power_meter_number field exists | Non-blocking
+- owner_power_meter_assembly_photo: Missing | Conditional: Recommended if owner_power_meter_number field exists | Non-blocking
+
+**Ground Level Infrastructure (6):**
+- Documentation quality warnings across generator, carrier facility, and signage records
+- These are documentation enhancement recommendations, not blocking issues
+- All critical required fields validated successfully
+
+---
+
+## NEXT STEPS
+
+✓ Survey approved for production
+✓ All validation rules satisfied  
+✓ Cross-validation passed (binary flags, photo integrity, TIA requirements)
+✓ No critical errors requiring correction
+✓ No action required
+
+**Optional Enhancements:**
+- Consider adding owner power meter photos if meter number field exists in Site Details
+- Address 6 minor documentation warnings in Ground Infrastructure for quality improvement
+
+**Site Revisit Required:** No - Survey is production-ready
+
+---
+
+## VALIDATION SUMMARY
+
+**Passed Validation Rules:** 100%
+**Failed Validation Rules:** 0
+**Cross-Validations:** 5/5 passed
+
+**Survey Type Notes:**
+Compound survey successfully captured all required elements including ground-level infrastructure (4 signage records, 3 carrier facilities, 2 generators), safety compliance (2 TIA deficiencies: ungrounded compound severity 2, vegetation encroachment severity 3), location data with high-precision coordinates, and comprehensive photo documentation.
+
+---
+
+END OF VALIDATION REPORT
+![alt text](image-11.png)
+
+---
 
 I've completed the validation of the US632993 structure survey payload. Here's the summary:
 
@@ -328,6 +445,51 @@ I've successfully validated the PNT survey payload for site **AhrensRd**. Here's
 ![alt text](image-3.png)
 
 ---
+# SURVEY VALIDATION REPORT - SITE AhrensRd
+
+## ✓ STATUS: READY FOR PRODUCTION
+
+**Site:** AhrensRd | **Type:** P&T Survey | **Structure:** 195 ft Guy Tower (3-leg, 4 guy levels)
+
+### VALIDATION SUMMARY
+- **Overall Completeness:** 100% (67/67 fields across all sections)
+- **Critical Errors:** 0
+- **Warnings:** 1 minor observation height note
+- **Cross-Validations:** 6/6 passed
+
+### SECTION RESULTS
+
+**✓ Site Details:** 100% complete (47/47 fields) | 0 critical, 0 warnings
+- All required fields validated: customer_site_id, technician, survey_type, structure specifications
+- Structure configuration: 3-leg triangular guy tower, 4 guy attachments, 195 ft height
+- Observation setup optimal: 5 measurement points, horizontal distances 119-125 ft (within recommended 0.3-0.5× tower height)
+
+**✓ Location:** Valid coordinates with 8-decimal precision | 0 critical, 0 warnings
+- Geographic location verified (upstate New York)
+- Coordinate system: EPSG:4326 / WGS 84
+
+**✓ Site Photos:** 1 photo (tech_signature) | 0 critical, 0 warnings
+- Minimal documentation normal for P&T surveys focusing on precision measurements
+
+**✓ PnT Observations:** 20 records across 4 types | 0 critical, 1 warning
+- observation_elevations_s: 5 records with proper sequence (52→99→158→189→195 ft)
+- leg_a_obs_s, leg_b_obs_s, leg_c_obs_s: 5 records each with valid angle measurements
+- All measurements within acceptable ranges (degrees ≤1°, minutes <60, seconds <60)
+- Warning: First observation at 52 ft (slightly above typical 20-50 ft range, but acceptable)
+
+### CROSS-VALIDATION RESULTS
+✓ Structure configuration matches observation data (3 legs = 3 observation arrays)
+✓ Observation count (5) matches declared observation_points
+✓ Photo count integrity: Metadata (1) = Actual (1)
+✓ Height sequencing: Monotonic increase, apex measurement matches structure_height
+✓ Guy tower validation: 4 attachment levels properly documented
+✓ Horizontal distances optimal for tower height (119-125 ft for 195 ft tower)
+
+### FINAL DETERMINATION
+**Survey APPROVED for production delivery.** All validation rules satisfied. No corrections or site revisit required. The P&T survey successfully captured precision angle measurements at 5 observation points across all three tower legs with proper elevation sequencing and measurement tolerances.
+![alt text](image-8.png)
+
+---
 
 # SURVEY VALIDATION REPORT - Glen Arbor
 
@@ -343,6 +505,21 @@ There is **1 critical error** requiring correction:
 - This error can be fixed in approximately 2 minutes without requiring a site revisit - simply add the location identifier for the documented TIA deficiency in Record #3. 
 - All cross-validation checks passed, confirming proper alignment between compound counts, photo integrity, and data consistency across sections
 ![alt text](image-4.png)
+
+---
+SURVEY VALIDATION REPORT - Glen Arbor
+The Glen arbor guy facilities survey has been validated with
+
+VALDIATION COMPLETE STATUS: ⚠ NEEDS CORRECTIONS.
+The payload contains 47 records with 67 photos and is 98% complete. There is 1 critical error requiring correction:
+
+TIA Record #3 is missing the required tia_location field.
+All core sections (Site Details, Location, Site Photos) passed validation, along with guy facilities infrastructure (24 records, 36 photos), guy wire tensions (18 records, 18 photos), and administrative records.
+The empty catch_all record is acceptable as a placeholder.
+This error can be fixed in approximately 2 minutes without requiring a site revisit - simply add the location identifier for the documented TIA deficiency in Record #3.
+All cross-validation checks passed, confirming proper alignment between compound counts, photo integrity, and data consistency across sections
+![alt text](image-9.png)
+![alt text](image-10.png)
 
 ---
 
@@ -449,6 +626,118 @@ COP survey data quality is excellent with comprehensive documentation across all
 
 END OF VALIDATION REPORT
 ![alt text](image-5.png)
+
+---
+# SURVEY VALIDATION REPORT - SITE [NULL]
+
+## SITE INFO
+**Site:** [NOT PROVIDED] | **Customer:** [NOT PROVIDED]
+**Tech:** [NOT PROVIDED] | **Type:** COP | **Structure:** [NOT PROVIDED]
+**Inspected:** [NOT PROVIDED]
+
+---
+
+## STATUS: ⚠ NEEDS CORRECTIONS
+
+### SECTION OVERVIEW
+
+**Site Details:** ✗ CRITICAL ERROR
+- Completeness: High (most fields present)
+- Critical: 1 | Warnings: 1
+- Missing required customer_site_id field
+
+**Location:** ✓ PASS
+- Coordinates: 39.7861049, -105.1316058 (14 decimals)
+- Critical: 0 | Warnings: 0
+- Valid land coordinates in Colorado, USA
+
+**Site Photos:** ✓ PASS
+- Coverage: 30/30 categories (63 total photos)
+- Critical: 0 | Warnings: 0
+- Complete documentation for all 6 sectors (alpha-zeta)
+
+**Repeat Records:** 26 records | 309 photos
+
+*Close-Out Package:* ✓ PASS | 12 types, 24 records | 0C, 0W
+*Administrative & Quality:* ✓ PASS | 1 type, 2 records | 0C, 0W
+
+**TOTALS:** 1 critical error | 1 warning | 99% complete
+
+---
+
+## CRITICAL ERRORS (1)
+
+**Site Details - Metadata (1):**
+
+1. **Site Details - customer_site_id**
+   - Current: NULL
+   - Required: Valid site identifier (string, non-empty)
+   - Rule: CUSTOMER_SITE_ID_REQUIRED (per validation rules for all COP surveys)
+   - Fix: Populate customer_site_id field with valid site identifier before submission
+
+---
+
+## CROSS-VALIDATION FINDINGS
+
+✓ All cross-section validations passed
+
+**Photo Count Verification:**
+- Site Photos: 63 photos documented
+- Repeat Records: 309 photos across 24 close-out records
+- Total: 372 photos
+- Status: ✓ Counts validated
+
+**Sector Coverage Consistency:**
+- Site Details: 6 sectors selected (alpha, beta, gamma, delta, epsilon, zeta)
+- Close-Out Records: 24 equipment records across 6 sectors
+- Site Photos: Complete photo sets for all 6 sectors
+- Status: ✓ All sectors have corresponding data and documentation
+
+**Serial Number Completeness:**
+- RRU Records: 100% serial number capture (old and new)
+- Antenna Records: 100% serial number capture (old and new)
+- Photo Documentation: Complete for all equipment
+- Status: ✓ All equipment fully documented
+
+---
+
+## WARNINGS (1)
+
+**Site Details (1):**
+- sector_selection: Current=6 sectors (alpha through zeta) | Recommended=4 sectors maximum | Note: Typical COP surveys document 1-4 sectors (4 being practical maximum). Six sectors selected exceeds typical scope and may indicate expanded project scope or require verification.
+
+---
+
+## NEXT STEPS
+
+**Priority Actions:**
+1. **Site Details:** Fix 1 critical error
+   - Populate customer_site_id with valid site identifier
+   - Estimated time: 2 min
+   
+2. **Sector Count Review (Optional):** Verify 6-sector scope
+   - Confirm that 6 sectors (alpha-zeta) is intentional for this project
+   - All 6 sectors are fully documented with equipment and photos
+   - Estimated time: 5 min
+
+**Total Estimated Time:** 2-7 minutes
+**Site Revisit Required:** No - Correction is metadata fix only
+
+---
+
+## VALIDATION SUMMARY
+
+**Passed Validation Rules:** 98%
+**Failed Validation Rules:** 1
+**Cross-Validations:** 3/3
+
+**Survey Type Notes:**
+This COP (Close-Out Package) survey demonstrates excellent field execution with complete equipment documentation across all 6 sectors, comprehensive serial number capture, and thorough photo documentation (372 total photos). All repeat record categories, site photos, and administrative records meet validation requirements. The only blocking issue is the missing customer_site_id metadata field, which is required for all survey types per validation rules.
+
+---
+
+END OF VALIDATION REPORT
+![alt text](image-12.png)
 
 ---
 
@@ -597,3 +886,128 @@ For light_cop surveys, documentation of all lighting equipment installations is 
 
 END OF VALIDATION REPORT
 ![alt text](image-6.png)
+
+---
+# SURVEY VALIDATION REPORT - SITE 3667
+
+## SITE INFO
+**Site:** DANNY's HAUS | **Customer Site ID:** 3667  
+**Tech:** Matt Edrich | **Type:** light_cop  
+**Inspected:** 2025-09-24
+
+---
+
+## STATUS: ✓ READY
+
+### SECTION OVERVIEW
+
+**Site Details:** ✓ PASSED
+- Completeness: 100% (43/43 fields)
+- Critical: 0 | Warnings: 0
+- All required fields present, all binary flags valid, work marked complete with proper requirements met
+
+**Location:** ✓ PASSED
+- Coordinates: 39.658166, -105.037409 (15/14 decimal precision)
+- Critical: 0 | Warnings: 0
+- Valid Denver metropolitan area coordinates, WGS 84 spatial reference
+
+**Site Photos:** ✓ PASSED
+- Coverage: 18/18 categories (36 total photos)
+- Critical: 0 | Warnings: 0
+- All core required categories present with appropriate counts, minimum photo requirements met
+
+**Repeat Records:** 11 records | 17 photos
+
+*Close-Out Package:* ✓ PASSED | 3 types, 9 records | 0C, 4W
+- Asset Serials: 5 records (top beacon, mid beacon, 3 side markers) with valid serial numbers
+- Side Markers: 3 records at elevations 25, 51, 77 with 13 photos
+- Lighting Controller: 1 record with 3 photos
+
+*Administrative & Quality:* ✓ PASSED | 2 types, 2 records | 0C, 0W
+- Catch All: 1 record with description and 1 photo
+- Flags: 1 empty record (properly ignored per validation rules)
+
+**TOTALS:** 0 critical errors | 4 warnings | 100% complete
+
+---
+
+## CRITICAL ERRORS (0)
+
+✓ No critical errors detected
+
+---
+
+## CROSS-VALIDATION FINDINGS
+
+✓ All cross-section validations passed
+
+**Binary Flag Consistency:**
+- lighting_controller_bin="yes" ✓ lighting_controller_s has 1 record
+- mid_beacon_bin="yes" ✓ asset_serials_s has mid_beacon entry with photos (new_midlevel_beacon_photo: 3, nmlb_service_loop_photo: 2)
+- gate_locked="yes" ✓ gate_locked_photo present (1 photo)
+- bphocs_locked="yes" ✓ bphocs_locked_photo present (1 photo)
+
+**Asset Type Cross-Validation:**
+- Top beacon in asset_serials_s ✓ new_top_beacon_photo (2) and ntb_service_loop_photo (3) present
+- Mid beacon in asset_serials_s ✓ mid_beacon_bin="yes" with required photos
+- Side markers (3) in asset_serials_s ✓ side_marker_s array has 3 records with valid elevations
+- Lighting controller in asset_serials_s ✓ lighting_controller_bin="yes" with 1 controller record
+
+**Work Completion Validation:**
+- work_completed="yes" ✓ Verified:
+  - tech_signature present (1 photo)
+  - asset_serials_s not empty (5 records)
+  - prework_glamour_photo ≥2 (3 photos)
+  - postwork_glamour_photo present (1 photo)
+  - site_fccnum_photo present (1 photo)
+  - gate_locked and bphocs_locked both="yes" with photos
+  - return_visit_needed="no" (no conflict)
+
+**Photo Count Integrity:**
+- Site Photos section: 36 photos across 18 categories
+- Repeat Records section: 17 photos (16 from Close-Out + 1 from Admin)
+- Total: 53 photos documented
+- All photo count fields match actual array lengths
+
+**Side Marker Elevation Validation:**
+- Elevations: 25, 51, 77 (all positive, unique, properly spaced)
+- No duplicates detected
+- All within reasonable range
+
+---
+
+## WARNINGS (4)
+
+**Close-Out Package (4):**
+- Metadata-related warnings (non-critical)
+- Specific details not provided but do not impact survey validity
+
+---
+
+## NEXT STEPS
+
+✓ Survey approved for production  
+✓ All validation rules satisfied  
+✓ Cross-validation passed  
+✓ Work completion requirements met  
+✓ Binary flags aligned with actual data  
+✓ Photo documentation complete  
+✓ Equipment installations properly documented  
+✓ No action required
+
+---
+
+## VALIDATION SUMMARY
+
+**Passed Validation Rules:** All applicable rules  
+**Failed Validation Rules:** 0  
+**Cross-Validations:** 8/8 passed
+
+**Survey Type Notes:**  
+Light COP survey for site 3667 meets all requirements for completed work documentation. All lighting equipment (top beacon, mid beacon, 3 side markers, lighting controller) properly documented with serial numbers, installation photos, and service loop photos meeting minimum requirements. Security protocols followed with both gate and BPHOCS locked and photographed. Technician signature captured. Survey ready for final processing.
+
+---
+
+END OF VALIDATION REPORT
+
+![alt text](image-13.png)
